@@ -6,7 +6,8 @@
       "Bash(npm run build)"
     ],
     "additionalDirectories": [
-      "/Users/Miguel/.claude/projects/-Users-Miguel-Documents-developer-CenturyLens"
+      "/Users/Miguel/.claude/projects/-Users-Miguel-Documents-developer-CenturyLens",
+      "/Users/Miguel/Documents/developer/CenturyLens/src/pages/About"
     ]
   }
 }

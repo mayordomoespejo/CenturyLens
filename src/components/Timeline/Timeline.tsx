@@ -145,7 +145,7 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
     if (!wheel) return null
 
     const rect = wheel.getBoundingClientRect()
-    const centerX = rect.left + rect.width * -0.3
+    const centerX = rect.left + rect.width * -0.42
     const centerY = rect.top + rect.height * 0.58
 
     return Math.atan2(clientY - centerY, clientX - centerX)

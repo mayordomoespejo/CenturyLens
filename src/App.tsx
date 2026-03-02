@@ -1,43 +1,33 @@
 import { useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { APP_CONFIG } from '@/config/app'
 import { Header } from '@/components/Header/Header'
-import { TimelinePage } from '@/pages/Timeline/TimelinePage'
-import { AboutPage } from '@/pages/About/AboutPage'
+import { Timeline } from '@/components/Timeline/Timeline'
+import { useOnThisDayEvents } from '@/hooks/useOnThisDayEvents'
+import { useTimelineDate } from '@/hooks/useTimelineDate'
 
-const PAGE_TITLE_KEYS: Record<string, string> = {
-  '/': 'NAV.TIMELINE',
-  '/about': 'NAV.ABOUT',
-}
-
-function TitleUpdater() {
-  const location = useLocation()
+export default function App() {
   const { t } = useTranslation()
+  const {
+    date: { month, day },
+  } = useTimelineDate()
+  const { data: events = [], isLoading, isError, refetch } = useOnThisDayEvents(month, day)
 
   useEffect(() => {
-    const key = PAGE_TITLE_KEYS[location.pathname]
-    document.title = key
-      ? `${t(key)} ${APP_CONFIG.titleSeparator} ${APP_CONFIG.name}`
-      : APP_CONFIG.name
-  }, [location.pathname, t])
+    document.title = `${t('TIMELINE.TITLE')} · ${APP_CONFIG.name}`
+  }, [t])
 
-  return null
-}
-
-/**
- * Mounts the application shell and route tree.
- */
-export default function App() {
   return (
     <>
-      <TitleUpdater />
       <Header />
-      <Routes>
-        <Route path="/" element={<TimelinePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="*" element={<TimelinePage />} />
-      </Routes>
+      <main>
+        <Timeline
+          events={events}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={() => void refetch()}
+        />
+      </main>
     </>
   )
 }

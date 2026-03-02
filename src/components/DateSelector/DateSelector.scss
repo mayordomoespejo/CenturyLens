@@ -1,12 +1,13 @@
 .date-selector {
   display: flex;
   align-items: flex-end;
-  gap: var(--space-4);
+  gap: var(--space-3);
   flex-wrap: nowrap;
 
   &__fields {
     display: flex;
-    gap: var(--space-3);
+    align-items: center;
+    gap: var(--space-2);
   }
 
   &__field {
@@ -23,9 +24,17 @@
     letter-spacing: 0.06em;
   }
 
+  &__sep {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    user-select: none;
+    pointer-events: none;
+  }
+
   &__input {
-    width: 72px;
-    min-height: 42px;
+    width: 68px;
+    min-height: 40px;
     padding: var(--space-2) var(--space-3);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -34,7 +43,9 @@
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
     text-align: center;
-    transition: border-color var(--transition-fast);
+    transition:
+      border-color var(--transition-fast),
+      background var(--transition-fast);
     -moz-appearance: textfield;
 
     &::-webkit-outer-spin-button,
@@ -53,31 +64,57 @@
   }
 
   &__today {
-    min-height: 42px;
+    min-height: 40px;
     padding: var(--space-2) var(--space-4);
-    background: var(--color-primary-muted);
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
     transition:
       background var(--transition-fast),
-      color var(--transition-fast);
+      color var(--transition-fast),
+      border-color var(--transition-fast);
 
     &:hover {
-      background: var(--color-primary);
-      color: var(--color-text-on-primary);
+      background: var(--color-primary-muted);
+      color: var(--color-primary);
+      border-color: var(--color-primary);
     }
 
     &:focus-visible {
       @include focus-ring;
     }
   }
+
+  // Compact variant — used inside the header
+  &--compact {
+    align-items: center;
+    gap: var(--space-2);
+
+    .date-selector__fields {
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .date-selector__input {
+      width: 54px;
+      min-height: 36px;
+      font-size: var(--font-size-sm);
+      padding: var(--space-1) var(--space-2);
+    }
+
+    .date-selector__today {
+      min-height: 36px;
+      padding: var(--space-1) var(--space-3);
+      font-size: var(--font-size-xs);
+    }
+  }
 }
 
-@media (max-width: 768px) {
-  .date-selector {
-    flex-wrap: wrap;
+@media (max-width: 479px) {
+  .date-selector--compact .date-selector__today {
+    display: none;
   }
 }
