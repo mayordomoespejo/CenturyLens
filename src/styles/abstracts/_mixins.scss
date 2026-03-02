@@ -1,0 +1,60 @@
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+
+@mixin sm {
+  @media (min-width: #{$bp-sm}) {
+    @content;
+  }
+}
+
+@mixin md {
+  @media (min-width: #{$bp-md}) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @media (min-width: #{$bp-lg}) {
+    @content;
+  }
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@mixin focus-ring {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin skeleton {
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease infinite;
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+}

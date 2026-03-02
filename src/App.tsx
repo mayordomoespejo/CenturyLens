@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { APP_CONFIG } from '@/config/app'
+import { Header } from '@/components/Header/Header'
+import { TimelinePage } from '@/pages/Timeline/TimelinePage'
+import { AboutPage } from '@/pages/About/AboutPage'
 
-function App() {
-  const [count, setCount] = useState(0)
+const PAGE_TITLE_KEYS: Record<string, string> = {
+  '/': 'NAV.TIMELINE',
+  '/about': 'NAV.ABOUT',
+}
 
+function TitleUpdater() {
+  const location = useLocation()
+  const { t } = useTranslation()
+
+  useEffect(() => {
+    const key = PAGE_TITLE_KEYS[location.pathname]
+    document.title = key
+      ? `${t(key)} ${APP_CONFIG.titleSeparator} ${APP_CONFIG.name}`
+      : APP_CONFIG.name
+  }, [location.pathname, t])
+
+  return null
+}
+
+/**
+ * Mounts the application shell and route tree.
+ */
+export default function App() {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <TitleUpdater />
+      <Header />
+      <Routes>
+        <Route path="/" element={<TimelinePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<TimelinePage />} />
+      </Routes>
     </>
   )
 }
-
-export default App

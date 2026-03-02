@@ -1,0 +1,36 @@
+{
+  "NAV": {
+    "TIMELINE": "Timeline",
+    "ABOUT": "About"
+  },
+  "HEADER": {
+    "TITLE": "CenturyLens",
+    "TOGGLE_THEME": "Toggle theme",
+    "NAVIGATION": "Primary navigation"
+  },
+  "TIMELINE": {
+    "TITLE": "On This Day in History",
+    "NO_EVENTS": "No events found for this date.",
+    "WIKIPEDIA": "Wikipedia",
+    "RESET": "Reset"
+  },
+  "DATE": {
+    "MONTH": "Month",
+    "DAY": "Day",
+    "TODAY": "Today",
+    "LABEL": "{{month}} / {{day}}"
+  },
+  "ABOUT": {
+    "TITLE": "About CenturyLens",
+    "INTRO": "CenturyLens is an educational web app that lets you explore historical events that happened on any day of the year.",
+    "STACK_TITLE": "Tech stack",
+    "DATA_TITLE": "Data source",
+    "DATA_BODY": "All event data is fetched in real time from the Wikimedia \"On This Day\" feed API, which covers notable historical events for every day of the year.",
+    "WIKIMEDIA_LINK": "Wikimedia Feed API"
+  },
+  "COMMON": {
+    "LOADING": "Loading…",
+    "ERROR": "Something went wrong.",
+    "RETRY": "Retry"
+  }
+}

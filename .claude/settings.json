@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install axios @tanstack/react-query react-router-dom react-i18next i18next i18next-browser-languagedetector @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities sass)",
+      "Bash(npm install -D prettier eslint-config-prettier)",
+      "Bash(npm run build)"
+    ],
+    "additionalDirectories": [
+      "/Users/Miguel/.claude/projects/-Users-Miguel-Documents-developer-CenturyLens"
+    ]
+  }
+}
