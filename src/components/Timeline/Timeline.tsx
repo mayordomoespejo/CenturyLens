@@ -93,6 +93,7 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
 
     /** Intercept mouse-wheel: advance exactly ±1 item instead of free-scrolling. */
     const handleWheelEvent = (e: WheelEvent) => {
+      if (e.target instanceof Element && e.target.closest('.dropdown')) return
       e.preventDefault()
       const shell = shellRef.current
       if (!shell) return

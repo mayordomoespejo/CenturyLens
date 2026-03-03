@@ -5,6 +5,7 @@ import { useContentLang } from '@/context/ContentLangContext'
 import { CONTENT_LANGS } from '@/config/langs'
 import { DateSelector } from '@/components/DateSelector/DateSelector'
 import { Dropdown } from '@/components/common/Dropdown'
+import { CenturyLensIcon } from '@/components/icons/icons'
 import './Header.scss'
 
 const SunIcon = () => (
@@ -41,7 +42,9 @@ export function Header() {
     <header className="header" role="banner">
       <div className="header__inner">
         <div className="header__brand">
-          <span className="header__brand-icon" aria-hidden="true">⟳</span>
+          <span className="header__brand-icon" aria-hidden="true">
+            <CenturyLensIcon />
+          </span>
           <span className="header__brand-name">CenturyLens</span>
         </div>
 

@@ -27,7 +27,7 @@
   &__brand {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-3);
     font-weight: var(--font-weight-bold);
     font-size: var(--font-size-base);
     color: var(--color-primary);
@@ -36,8 +36,20 @@
   }
 
   &__brand-icon {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-primary);
+
+    svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+      transform-origin: center;
+      animation: header-brand-spin 28s linear infinite;
+    }
   }
 
   &__brand-name {
@@ -91,6 +103,16 @@
     &:focus-visible {
       @include focus-ring;
     }
+  }
+}
+
+@keyframes header-brand-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 

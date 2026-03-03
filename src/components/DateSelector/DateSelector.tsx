@@ -37,6 +37,13 @@ export function DateSelector({ month, day, onChange, compact = false }: Props) {
     value: i + 1,
     label: t(`DATE.MONTHS.${key}`),
   }))
+  const dayOptions: DropdownOption[] = Array.from(
+    { length: getDaysInMonth(localMonth) },
+    (_, index) => ({
+      value: index + 1,
+      label: String(index + 1),
+    }),
+  )
 
   const handleMonthChange = (value: string | number) => {
     const nextMonth = Number(value)
@@ -69,14 +76,12 @@ export function DateSelector({ month, day, onChange, compact = false }: Props) {
 
         <span className="date-selector__sep" aria-hidden="true">/</span>
 
-        <input
-          className="date-selector__input"
-          type="number"
-          min={1}
-          max={getDaysInMonth(localMonth)}
+        <Dropdown
           value={localDay}
-          onChange={(e) => setLocalDay(clampDay(Number(e.target.value), localMonth))}
-          aria-label={t('DATE.DAY')}
+          options={dayOptions}
+          onChange={(value) => setLocalDay(clampDay(Number(value), localMonth))}
+          ariaLabel={t('DATE.DAY')}
+          className="date-selector__day-dropdown"
         />
 
         <button

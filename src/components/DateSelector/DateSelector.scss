@@ -18,35 +18,20 @@
     pointer-events: none;
   }
 
-  &__input {
+  &__day-dropdown {
     width: 52px;
-    height: 36px;
-    padding: 0 var(--space-2);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text);
-    font-family: inherit;
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    text-align: center;
-    transition:
-      border-color var(--transition-fast),
-      background var(--transition-fast);
-    -moz-appearance: textfield;
+    min-width: 52px;
 
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button {
-      -webkit-appearance: none;
+    .dropdown__sizer,
+    .dropdown__trigger {
+      width: 52px;
+      min-width: 52px;
+      padding-left: var(--space-2);
+      padding-right: var(--space-2);
     }
 
-    &:hover {
-      border-color: var(--color-primary);
-    }
-
-    &:focus-visible {
-      outline: none;
-      border-color: var(--color-primary);
+    .dropdown__trigger-label {
+      text-align: center;
     }
   }
 

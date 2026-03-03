@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import './Dropdown.scss'
 
@@ -17,12 +17,16 @@ interface Props {
 
 export function Dropdown({ value, options, onChange, ariaLabel, className = '' }: Props) {
   const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, options.findIndex((option) => option.value === value)))
+  const menuId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLUListElement>(null)
   const normalizedOptions = options.map((option) => ({
     ...option,
     label: option.label ?? String(option.value),
   }))
+  const selectedIndex = Math.max(0, normalizedOptions.findIndex((option) => option.value === value))
 
   const currentLabel = normalizedOptions.find((o) => o.value === value)?.label ?? String(value)
   const longestLabel = normalizedOptions.length
@@ -44,18 +48,70 @@ export function Dropdown({ value, options, onChange, ariaLabel, className = '' }
   // Scroll selected option into view when menu opens
   useEffect(() => {
     if (!isOpen || !menuRef.current) return
-    const selected = menuRef.current.querySelector('[aria-selected="true"]')
-    selected?.scrollIntoView({ block: 'nearest' })
-  }, [isOpen])
+    const activeOption = menuRef.current.querySelector<HTMLElement>('[data-active="true"]')
+    activeOption?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex, isOpen])
+
+  useEffect(() => {
+    setActiveIndex(selectedIndex)
+  }, [selectedIndex])
 
   const handleSelect = (optValue: string | number) => {
     onChange(optValue)
     setIsOpen(false)
+    triggerRef.current?.focus()
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') { setIsOpen(false); return }
-    if (e.key === 'ArrowDown' && !isOpen) { e.preventDefault(); setIsOpen(true) }
+    if (normalizedOptions.length === 0) return
+
+    if (e.key === 'Escape') {
+      setIsOpen(false)
+      triggerRef.current?.focus()
+      return
+    }
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (!isOpen) {
+        setActiveIndex(selectedIndex)
+        setIsOpen(true)
+        return
+      }
+
+      const direction = e.key === 'ArrowDown' ? 1 : -1
+      setActiveIndex((current) => {
+        const start = current >= 0 ? current : selectedIndex
+        return (start + direction + normalizedOptions.length) % normalizedOptions.length
+      })
+      return
+    }
+
+    if (!isOpen && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault()
+      setActiveIndex(selectedIndex)
+      setIsOpen(true)
+      return
+    }
+
+    if (!isOpen) return
+
+    if (e.key === 'Home') {
+      e.preventDefault()
+      setActiveIndex(0)
+      return
+    }
+
+    if (e.key === 'End') {
+      e.preventDefault()
+      setActiveIndex(normalizedOptions.length - 1)
+      return
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleSelect(normalizedOptions[activeIndex]?.value ?? normalizedOptions[selectedIndex].value)
+    }
   }
 
   return (
@@ -69,12 +125,14 @@ export function Dropdown({ value, options, onChange, ariaLabel, className = '' }
       <span className="dropdown__sizer" aria-hidden="true">{longestLabel}</span>
 
       <button
+        ref={triggerRef}
         type="button"
         className="dropdown__trigger"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
+        aria-controls={menuId}
       >
         <span className="dropdown__trigger-label">{currentLabel}</span>
         <svg className="dropdown__chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -83,15 +141,25 @@ export function Dropdown({ value, options, onChange, ariaLabel, className = '' }
       </button>
 
       {isOpen && (
-        <ul ref={menuRef} className="dropdown__menu" role="listbox" aria-label={ariaLabel}>
-          {normalizedOptions.map((option) => {
+        <ul
+          ref={menuRef}
+          id={menuId}
+          className="dropdown__menu"
+          role="listbox"
+          aria-label={ariaLabel}
+          onWheel={(event) => event.stopPropagation()}
+        >
+          {normalizedOptions.map((option, index) => {
             const isSelected = option.value === value
+            const isActive = index === activeIndex
             return (
               <li key={String(option.value)} role="option" aria-selected={isSelected}>
                 <button
                   type="button"
-                  className={`dropdown__option${isSelected ? ' dropdown__option--selected' : ''}`}
+                  className={`dropdown__option${isSelected ? ' dropdown__option--selected' : ''}${isActive ? ' dropdown__option--active' : ''}`}
                   onClick={() => handleSelect(option.value)}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  data-active={isActive ? 'true' : 'false'}
                 >
                   {isSelected ? (
                     <svg className="dropdown__option-check" viewBox="0 0 12 12" fill="none" aria-hidden="true">

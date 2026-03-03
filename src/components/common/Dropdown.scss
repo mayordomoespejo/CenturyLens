@@ -119,6 +119,11 @@
       color: var(--color-primary);
     }
 
+    &--active {
+      background: var(--color-primary-muted);
+      color: var(--color-primary);
+    }
+
     &--selected {
       color: var(--color-primary);
       font-weight: var(--font-weight-semibold);
