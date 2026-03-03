@@ -1,0 +1,23 @@
+@use 'abstracts' as *;
+@use 'base/reset';
+@use 'base/typography';
+
+.visually-hidden {
+  @include visually-hidden;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton {
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease infinite;
+}

@@ -1,0 +1,55 @@
+{
+  "HEADER": {
+    "TOGGLE_THEME": "تبديل السمة",
+    "LANGUAGE_SELECT": "اختر لغة المحتوى"
+  },
+  "TIMELINE": {
+    "TITLE": "حدث في مثل هذا اليوم",
+    "TITLE_RELATIVE": "{{label}} في التاريخ",
+    "TITLE_DATE": "{{day}} {{month}} في التاريخ",
+    "NO_EVENTS": "لم يتم العثور على أحداث لهذا التاريخ.",
+    "WIKIPEDIA": "ويكيبيديا",
+    "ARIA_LABEL": "الخط الزمني للأحداث التاريخية",
+    "IMAGE_ALT": "{{year}}: {{text}}"
+  },
+  "DATE": {
+    "MONTH": "الشهر",
+    "DAY": "اليوم",
+    "YESTERDAY": "أمس",
+    "TODAY": "اليوم",
+    "TOMORROW": "غدًا",
+    "APPLY": "تطبيق",
+    "MONTHS": {
+      "JANUARY": "يناير",
+      "FEBRUARY": "فبراير",
+      "MARCH": "مارس",
+      "APRIL": "أبريل",
+      "MAY": "مايو",
+      "JUNE": "يونيو",
+      "JULY": "يوليو",
+      "AUGUST": "أغسطس",
+      "SEPTEMBER": "سبتمبر",
+      "OCTOBER": "أكتوبر",
+      "NOVEMBER": "نوفمبر",
+      "DECEMBER": "ديسمبر"
+    }
+  },
+  "LANGUAGES": {
+    "AR": "العربية",
+    "DE": "Deutsch",
+    "EN": "English",
+    "ES": "Español",
+    "FR": "Français",
+    "IT": "Italiano",
+    "PT": "Português",
+    "SV": "Svenska",
+    "TR": "Türkçe",
+    "UK": "Українська",
+    "ZH": "中文"
+  },
+  "COMMON": {
+    "LOADING": "جارٍ التحميل…",
+    "ERROR": "حدث خطأ ما.",
+    "RETRY": "إعادة المحاولة"
+  }
+}

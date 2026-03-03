@@ -1,0 +1,196 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  border-bottom: 1px solid var(--color-border);
+  z-index: var(--z-header);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background-color var(--transition-base);
+
+  // ── Inner: flex row on desktop ─────────────────────────────────────────────
+  // Children: brand · date-group · divider · actions
+
+  &__inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-6);
+    gap: var(--space-2);
+    max-width: 1600px;
+    margin-inline: auto;
+  }
+
+  // ── Brand ─────────────────────────────────────────────────────────────────
+
+  &__brand {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-base);
+    color: var(--color-primary);
+    user-select: none;
+  }
+
+  &__brand-icon {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-primary);
+
+    svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+      transform-origin: center;
+      animation: header-brand-spin var(--ornament-spin-duration) linear infinite;
+    }
+  }
+
+  &__brand-name {
+    letter-spacing: -0.01em;
+  }
+
+  // ── Date group ────────────────────────────────────────────────────────────
+
+  &__date-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+
+  // ── Divider ───────────────────────────────────────────────────────────────
+
+  &__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
+    flex-shrink: 0;
+    margin-inline: var(--space-1);
+  }
+
+  // ── Actions (lang + theme) ────────────────────────────────────────────────
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+
+  &__lang-dropdown {
+    width: 52px;
+    min-width: 52px;
+
+    .dropdown__sizer,
+    .dropdown__trigger {
+      width: 52px;
+      min-width: 52px;
+      padding-left: var(--space-2);
+      padding-right: var(--space-2);
+    }
+
+    .dropdown__trigger-label {
+      text-align: center;
+    }
+  }
+
+  &__theme-btn {
+    width: 52px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      background: var(--color-primary-muted);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+@keyframes header-brand-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+
+@include sm {
+  .header__brand-name {
+    display: inline;
+  }
+}
+
+// Mobile: header becomes two rows — [brand + actions] / [date-group]
+@media (max-width: 640px) {
+  .header__inner {
+    position: relative; // anchor for the row separator
+    display: grid;
+    grid-template-columns: 1fr auto;
+    // Row 1: brand 56px, Row 2: date 52px  →  total 108px
+    grid-template-rows: 56px var(--mobile-datebar-height);
+    align-items: center;
+    padding-inline: var(--space-4);
+    gap: 0;
+  }
+
+  // Full-width separator between the two rows — edge to edge, ignores padding
+  .header__inner::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 56px;
+    height: 1px;
+    background: var(--color-border);
+    pointer-events: none;
+  }
+
+  // Row 1
+  .header__brand    { grid-row: 1; grid-column: 1; gap: var(--space-2); }
+  .header__actions  { grid-row: 1; grid-column: 2; }
+  .header__divider  { display: none; }
+
+  // Row 2: compact and right-aligned, same grouping as desktop
+  .header__date-group {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  // Always show the Today button in the header regardless of viewport width
+  .header__date-group .date-selector__today {
+    display: flex;
+  }
+}

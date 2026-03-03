@@ -1,0 +1,468 @@
+.timeline {
+  &--loading {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  &__empty {
+    padding: var(--space-12) var(--space-4);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.timeline-shell {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  // Height is set directly via React inline style so it overrides any media-query
+  // rules. This creates the scroll travel (shell taller than viewport) that drives
+  // the wheel rotation on all screen sizes.
+}
+
+.timeline-shell--loading {
+  position: absolute;
+  top: var(--header-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.timeline-stage {
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  overflow: clip;
+}
+
+.timeline-stage__grid {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.timeline-wheel {
+  // Radius scales with width AND available height so proportions hold across resolutions.
+  // 80vh - 58px ≈ 80% of (100vh - header-height): keeps the wheel filling the stage similarly.
+  // At 1600×920 this gives ≈678px (≡ the previous 680px hard cap).
+  --wheel-radius: clamp(320px, min(46vw, calc(80vh - 58px)), 1050px);
+  --wheel-diameter: calc(var(--wheel-radius) * 2);
+  // Year column and gap are proportional fractions of the radius so they scale together.
+  --year-col-width: clamp(72px, calc(var(--wheel-radius) * 0.176), 180px);
+  --label-gap: clamp(20px, calc(var(--wheel-radius) * 0.059), 68px);
+  --wheel-center-x: -25%;
+  --wheel-center-y: 50%;
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - var(--header-height));
+  border-radius: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  background: linear-gradient(160deg, var(--color-bg-alt) 0%, var(--color-surface) 55%, var(--color-bg) 100%);
+}
+
+.timeline-wheel::before {
+  content: '';
+  position: absolute;
+  top: var(--wheel-center-y);
+  left: var(--wheel-center-x);
+  width: calc(var(--wheel-diameter) * 1.15);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(200, 150, 62, 0.28) 0,
+    rgba(200, 150, 62, 0.18) 14%,
+    rgba(200, 150, 62, 0.08) 34%,
+    rgba(200, 150, 62, 0.03) 56%,
+    transparent 76%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.theme-dark .timeline-wheel::before {
+  background: radial-gradient(
+    circle,
+    rgba(212, 168, 80, 0.28) 0,
+    rgba(212, 168, 80, 0.18) 14%,
+    rgba(212, 168, 80, 0.08) 34%,
+    rgba(212, 168, 80, 0.03) 56%,
+    transparent 76%
+  );
+}
+
+.timeline-wheel--dragging,
+.timeline-wheel--dragging * {
+  cursor: grabbing !important;
+}
+
+.timeline-wheel__orbit {
+  position: absolute;
+  top: 50%;
+  left: -25%;
+  width: var(--wheel-diameter);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 0 1px rgba(200, 150, 62, 0.06) inset;
+}
+
+.theme-dark .timeline-wheel__orbit {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(212, 168, 80, 0.06) inset;
+}
+
+.timeline-wheel__item {
+  position: absolute;
+  top: 50%;
+  left: -25%;
+  width: min(1100px, 72vw);
+  display: block;
+  padding: 0;
+  border: 0;
+  color: var(--color-text);
+  text-align: left;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    transform var(--transition-base),
+    opacity var(--transition-base),
+    filter var(--transition-base),
+    color var(--transition-base);
+  cursor: pointer;
+  transform-origin: left center;
+  justify-items: start;
+  font-weight: var(--font-weight-medium);
+}
+
+.timeline-wheel__item--flipped {
+  transform-origin: right center;
+  text-align: right;
+}
+
+// Keyboard focus: only lift opacity — color stays neutral so non-active
+// items don't look selected.
+.timeline-wheel__item:focus-visible {
+  opacity: 1 !important;
+}
+
+// Touch browsers can keep :hover latched after a tap, which makes
+// previously selected items look active on mobile. Restrict hover
+// styling to actual hover-capable fine pointers.
+@media (hover: hover) and (pointer: fine) {
+  .timeline-wheel__item:hover {
+    opacity: 1 !important;
+  }
+}
+
+// Active: full primary treatment — exclusively driven by the --active class.
+.timeline-wheel__item--active {
+  color: var(--color-primary);
+  opacity: 1 !important;
+  font-weight: var(--font-weight-bold);
+  filter: saturate(1.1);
+}
+
+.timeline-wheel__label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--label-gap);
+  max-width: 100%;
+  // Shift left by year-col-width + half the gap so the orbit line
+  // falls exactly centred in the gap between year and description
+  transform: translateX(calc(-1 * (var(--year-col-width) + var(--label-gap) / 2)));
+  transition:
+    gap var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+// Flipped items (left side): reverse order so year is closest to orbit (inside)
+// Shift right by half the gap so the orbit sits centred in the gap
+.timeline-wheel__item--flipped .timeline-wheel__label {
+  flex-direction: row-reverse;
+  transform: translateX(calc(var(--label-gap) / 2));
+}
+
+// Active states — preserve full offsets
+.timeline-wheel__item--active:not(.timeline-wheel__item--flipped) .timeline-wheel__label {
+  transform: translateX(calc(-1 * (var(--year-col-width) + var(--label-gap) / 2))) scale(1);
+}
+
+.timeline-wheel__item--active.timeline-wheel__item--flipped .timeline-wheel__label {
+  transform: translateX(calc(var(--label-gap) / 2)) scale(1);
+}
+
+.timeline-wheel__year {
+  display: inline;
+  flex: 0 0 var(--year-col-width);
+  width: var(--year-col-width);
+  // Right-align so the year hugs the orbit line on its right edge (non-flipped items)
+  text-align: right;
+  color: var(--color-primary);
+  font-size: clamp(1.1rem, 1.6vw, 2.4rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition:
+    font-size var(--transition-fast),
+    text-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+// Flipped items: year is on the right side (inside orbit), align from the orbit inward
+.timeline-wheel__item--flipped .timeline-wheel__year {
+  text-align: left;
+}
+
+.timeline-wheel__item--active .timeline-wheel__year {
+  font-size: clamp(1.3rem, 1.9vw, 2.8rem);
+  text-shadow: 0 0 18px rgba(200, 150, 62, 0.22);
+}
+
+.timeline-wheel__text {
+  display: inline;
+  color: var(--color-text);
+  font-size: clamp(0.78rem, 1.1vw, 1.5rem);
+  line-height: 1.15;
+  white-space: nowrap;
+  transition:
+    font-size var(--transition-fast),
+    opacity var(--transition-fast),
+    text-shadow var(--transition-fast);
+}
+
+.timeline-wheel__item--active .timeline-wheel__text {
+  font-size: clamp(0.86rem, 1.22vw, 1.7rem);
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.08);
+}
+
+.theme-dark .timeline-wheel__item--active .timeline-wheel__text {
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.08);
+}
+
+.timeline-detail {
+  position: absolute;
+  z-index: 2;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  width: min(400px, 34vw);
+  max-height: calc(100vh - var(--header-height) - var(--space-12));
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-content: start;
+  padding: var(--space-8);
+  border-radius: 24px;
+  background: rgba(250, 249, 246, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-top: 3px solid var(--color-primary);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+
+.theme-dark .timeline-detail {
+  background: rgba(19, 17, 16, 0.6);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.timeline-detail__eyebrow {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+}
+
+.timeline-detail__year {
+  margin: 0;
+  font-size: clamp(3.5rem, 9vw, 5.5rem);
+  color: var(--color-text);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.timeline-detail__text {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.timeline-detail__image-frame {
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.timeline-detail__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.timeline-detail__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.timeline-detail__playpause {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-muted);
+  }
+
+  &--playing {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: var(--color-primary-muted);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.timeline-detail__link,
+.timeline-detail__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.timeline-detail__link:hover,
+.timeline-detail__clear:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-muted);
+}
+
+.timeline-detail__clear {
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  // .timeline-shell and .timeline-stage keep their base rules (inline height + sticky)
+  // so the scroll-driven wheel works identically on tablet and desktop.
+
+  .timeline-detail {
+    position: absolute;
+    right: var(--space-4);
+    left: var(--space-4);
+    top: auto;
+    bottom: var(--space-4);
+    transform: none;
+    width: auto;
+    max-height: 45vh;
+    padding: var(--space-5);
+    border-radius: 20px;
+  }
+
+  .timeline-wheel {
+    min-height: calc(100vh - var(--header-height));
+  }
+}
+
+@media (max-width: 640px) {
+  .timeline-wheel {
+    --wheel-radius: min(80vw, 480px);
+    --year-col-width: 52px;
+    --label-gap: 20px;
+    --wheel-center-x: -60%;
+    --wheel-center-y: 20px;
+    min-height: 580px;
+    // Allow native vertical scroll with momentum on touch devices.
+    // The browser fires pointercancel (not pointermove) for scroll gestures,
+    // so the drag model stays desktop-only while touch uses native scroll.
+    touch-action: pan-y;
+    cursor: default;
+  }
+
+  // Pivot = item activo. Lo situamos inmediatamente bajo la MobileDateBar.
+  // main tiene padding-top: header + datebar, así que el wheel empieza justo
+  // debajo de la datebar. Con top: 20px dejamos un margen visual mínimo.
+  .timeline-wheel__orbit {
+    top: 20px;
+    left: -60%;
+  }
+
+  .timeline-wheel__item {
+    top: 20px;
+    left: -60%;
+    width: min(400px, 72vw);
+  }
+
+  .timeline-wheel__year {
+    font-size: 0.9rem;
+  }
+
+  .timeline-wheel__text {
+    font-size: 0.72rem;
+  }
+
+  .timeline-detail {
+    max-height: 38vh;
+    padding: var(--space-4);
+    border-radius: 16px;
+  }
+
+  .timeline-detail__image-frame {
+    display: none;
+  }
+}

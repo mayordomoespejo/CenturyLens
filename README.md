@@ -1,73 +1,66 @@
-# React + TypeScript + Vite
+# Dayfold
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dayfold is a React 19 SPA that explores historical events for any day of the year using the Wikimedia On This Day API.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Radial timeline synchronized with scroll and drag interactions
+- Day and month selection persisted in the URL
+- Light and dark theme persisted in `localStorage`
+- English and Spanish translations with browser language detection
+- Route-based About page with project and data source details
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Purpose       | Library                    |
+| ------------- | -------------------------- |
+| UI            | React 19 + TypeScript      |
+| Build         | Vite                       |
+| Routing       | React Router               |
+| Data fetching | TanStack Query + Fetch API |
+| i18n          | i18next + react-i18next    |
+| Styles        | SCSS                       |
+| Data source   | Wikimedia Feed API         |
 
-## Expanding the ESLint configuration
+## Scripts
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Development server default URL: `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Architecture
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `src/components`: presentational building blocks for the shell, timeline and shared states
+- `src/config`: application-level constants such as storage keys and API base URLs
+- `src/hooks`: reusable state and data hooks for theme, date query params and historical events
+- `src/i18n`: i18next bootstrap plus `en` and `es` locale bundles
+- `src/lib`: framework setup such as the shared React Query client
+- `src/pages`: route-level screens
+- `src/services`: external API clients and response mapping
+- `src/styles`: global design tokens, mixins and base styles
+- `src/types`: shared TypeScript contracts
+- `src/utils`: pure utility functions
+
+## Data flow
+
+1. `useTimelineDate` reads `month` and `day` from the URL and normalizes invalid values.
+2. `useOnThisDayEvents` requests Wikimedia data and caches the result by date.
+3. `fetchOnThisDayEvents` maps the raw API response into a stable `TimelineEvent` model.
+4. `Timeline` renders the normalized events and handles scroll and pointer interactions.
+
+## Deployment
+
+The repo includes `netlify.toml` with SPA redirects configured for static deployment on Netlify.
+
+## Data source
+
+Historical data comes from the Wikimedia Feed API:
+
+- Docs: `https://api.wikimedia.org/wiki/Feed_API/Reference/On_this_day`
+- Endpoint pattern: `https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/{month}/{day}`
