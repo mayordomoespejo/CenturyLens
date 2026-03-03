@@ -11,6 +11,7 @@ interface Props {
   isLoading: boolean
   isError: boolean
   onRetry: () => void
+  title: string
 }
 
 const ARC_VISIBLE_SPAN = 1.2
@@ -18,6 +19,8 @@ const ARC_VISIBLE_SPAN = 1.2
 const FIXED_ANGLE_INCREMENT = 0.1
 /** Pixels of page scroll needed to advance one item through the visible arc. */
 const SCROLL_PER_ITEM = 220
+/** Angular velocity of the auto-rotate idle animation — 1 rev / 120 s, same as the header icon. */
+const AUTO_ROTATE_SPEED = (2 * Math.PI) / 120
 
 interface WheelItem {
   event: TimelineEvent
@@ -37,22 +40,43 @@ function normalizeAngle(angle: number): number {
   return angle
 }
 
+const PlayIcon = () => (
+  <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M4 3.5a.5.5 0 0 1 .763-.424l9 5a.5.5 0 0 1 0 .848l-9 5A.5.5 0 0 1 4 13.5v-10z" />
+  </svg>
+)
+
+const PauseIcon = () => (
+  <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <rect x="3" y="3" width="4" height="10" rx="1" />
+    <rect x="9" y="3" width="4" height="10" rx="1" />
+  </svg>
+)
+
 /**
  * Renders the radial timeline and synchronizes scroll and drag interactions.
  */
-export function Timeline({ events, isLoading, isError, onRetry }: Props) {
+export function Timeline({ events, isLoading, isError, onRetry, title }: Props) {
   const { t } = useTranslation()
   const shellRef = useRef<HTMLDivElement | null>(null)
   const wheelRef = useRef<HTMLDivElement | null>(null)
   const dragStateRef = useRef<{
     pointerId: number
-    startAngle: number
+    startY: number
     startRotationOffset: number
   } | null>(null)
   const dragMovedRef = useRef(false)
   const pressedItemIndexRef = useRef<number | null>(null)
   const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Auto-rotate idle state
+  const autoRotateActiveRef = useRef(true)
+  const autoRafRef = useRef<number | null>(null)
+  const autoTimestampRef = useRef<number | null>(null)
   const [rotationOffset, setRotationOffset] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [isDragging, setIsDragging] = useState(false)
+
+  // ── Scroll / snap / wheel-event handler ───────────────────────────────────
 
   useEffect(() => {
     if (events.length === 0) return
@@ -86,13 +110,21 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
 
       setRotationOffset(progress * maxRotation)
 
-      // Debounce: snap to nearest item 150 ms after scrolling stops
-      if (snapTimerRef.current) clearTimeout(snapTimerRef.current)
-      snapTimerRef.current = setTimeout(snapToNearest, 150)
+      // Don't snap while auto-rotating — snap would fight the animation
+      if (!autoRotateActiveRef.current) {
+        if (snapTimerRef.current) clearTimeout(snapTimerRef.current)
+        snapTimerRef.current = setTimeout(snapToNearest, 150)
+      }
     }
 
     /** Intercept mouse-wheel: advance exactly ±1 item instead of free-scrolling. */
     const handleWheelEvent = (e: WheelEvent) => {
+      // Stop auto-rotate on first user wheel interaction
+      if (autoRotateActiveRef.current) {
+        autoRotateActiveRef.current = false
+        setIsAutoPlaying(false)
+      }
+
       if (e.target instanceof Element && e.target.closest('.dropdown')) return
       e.preventDefault()
       const shell = shellRef.current
@@ -123,6 +155,72 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
       if (snapTimerRef.current) clearTimeout(snapTimerRef.current)
     }
   }, [events.length])
+
+  // ── Auto-rotate idle animation ─────────────────────────────────────────────
+  // Advances the wheel at AUTO_ROTATE_SPEED until the user interacts, the
+  // play/pause button pauses it, or the last item is reached.
+
+  useEffect(() => {
+    if (events.length === 0 || !isAutoPlaying) return
+
+    autoRotateActiveRef.current = true
+    autoTimestampRef.current = null
+
+    const maxRot = (events.length - 1) * FIXED_ANGLE_INCREMENT
+
+    // Stop on native touch scroll (mobile — not captured by pointer events)
+    const stopOnTouch = () => setIsAutoPlaying(false)
+    window.addEventListener('touchstart', stopOnTouch, { once: true, passive: true })
+
+    const tick = (timestamp: number) => {
+      if (!autoRotateActiveRef.current) return
+
+      if (autoTimestampRef.current === null) {
+        autoTimestampRef.current = timestamp
+        autoRafRef.current = requestAnimationFrame(tick)
+        return
+      }
+
+      // Cap dt at 100 ms so switching tabs doesn't cause a large jump
+      const dt = Math.min((timestamp - autoTimestampRef.current) / 1000, 0.1)
+      autoTimestampRef.current = timestamp
+
+      const shell = shellRef.current
+      if (!shell) {
+        autoRafRef.current = requestAnimationFrame(tick)
+        return
+      }
+
+      const shellRect = shell.getBoundingClientRect()
+      const travel = Math.max(shell.offsetHeight - window.innerHeight, 1)
+      const shellTop = window.scrollY + shellRect.top
+
+      // pixels/s = (rad/s ÷ total_rad) × total_pixels
+      const scrollDelta = maxRot > 0 ? (AUTO_ROTATE_SPEED / maxRot) * travel * dt : 0
+      const endScrollY = shellTop + travel
+      const targetScrollY = window.scrollY + scrollDelta
+
+      if (targetScrollY >= endScrollY) {
+        autoRotateActiveRef.current = false
+        setIsAutoPlaying(false)
+        window.scrollTo({ top: endScrollY })
+        return
+      }
+
+      window.scrollTo({ top: targetScrollY })
+      autoRafRef.current = requestAnimationFrame(tick)
+    }
+
+    autoRafRef.current = requestAnimationFrame(tick)
+
+    return () => {
+      autoRotateActiveRef.current = false
+      if (autoRafRef.current !== null) { cancelAnimationFrame(autoRafRef.current); autoRafRef.current = null }
+      window.removeEventListener('touchstart', stopOnTouch)
+    }
+  }, [events.length, isAutoPlaying])
+
+  // ── Derived state ─────────────────────────────────────────────────────────
 
   const maxRotation = useMemo(
     () => Math.max(0, (events.length - 1) * FIXED_ANGLE_INCREMENT),
@@ -173,20 +271,14 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
     window.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
   }
 
-  const pointerAngleFromCenter = (clientX: number, clientY: number) => {
-    const wheel = wheelRef.current
-    if (!wheel) return null
-
-    const rect = wheel.getBoundingClientRect()
-    const centerX = rect.left + rect.width * -0.42
-    const centerY = rect.top + rect.height * 0.58
-
-    return Math.atan2(clientY - centerY, clientX - centerX)
-  }
+  // ── Pointer / keyboard handlers ───────────────────────────────────────────
 
   const handleWheelPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const startAngle = pointerAngleFromCenter(event.clientX, event.clientY)
-    if (startAngle === null) return
+    // Stop auto-rotate on first touch/click
+    if (autoRotateActiveRef.current) {
+      autoRotateActiveRef.current = false
+      setIsAutoPlaying(false)
+    }
 
     const itemEl = (event.target as HTMLElement).closest<HTMLElement>('[data-index]')
     pressedItemIndexRef.current = itemEl ? Number(itemEl.dataset.index) : null
@@ -194,10 +286,11 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
     dragMovedRef.current = false
     dragStateRef.current = {
       pointerId: event.pointerId,
-      startAngle,
+      startY: event.clientY,
       startRotationOffset: rotationOffset,
     }
 
+    setIsDragging(true)
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
@@ -205,23 +298,20 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
     const dragState = dragStateRef.current
     if (!dragState || dragState.pointerId !== event.pointerId) return
 
-    const currentAngle = pointerAngleFromCenter(event.clientX, event.clientY)
-    if (currentAngle === null) return
+    // Linear Y drag: dragging down advances the wheel (same direction as scroll-down)
+    const deltaY = event.clientY - dragState.startY
+    if (Math.abs(deltaY) > 4) dragMovedRef.current = true
 
-    const deltaAngle = normalizeAngle(currentAngle - dragState.startAngle)
-    if (Math.abs(deltaAngle) > 0.015) dragMovedRef.current = true
-
+    const radPerPixel = FIXED_ANGLE_INCREMENT / SCROLL_PER_ITEM
+    // Drag down = wheel rotates backward (like grabbing a physical wheel on its right side)
     const targetOffset = Math.min(
       maxRotation,
-      Math.max(0, dragState.startRotationOffset - deltaAngle),
+      Math.max(0, dragState.startRotationOffset - deltaY * radPerPixel),
     )
+
     const targetScrollTop = offsetToScrollTop(targetOffset)
     if (targetScrollTop === null) return
-
-    window.scrollTo({
-      top: targetScrollTop,
-      behavior: 'auto',
-    })
+    window.scrollTo({ top: targetScrollTop, behavior: 'instant' as ScrollBehavior })
   }
 
   const handleWheelPointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -235,6 +325,7 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
       scrollToActivePosition(pressedItemIndexRef.current)
     }
     pressedItemIndexRef.current = null
+    setIsDragging(false)
 
     window.setTimeout(() => {
       dragMovedRef.current = false
@@ -245,6 +336,12 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
     if (events.length === 0) return
 
+    // Stop auto-rotate on keyboard navigation
+    if (autoRotateActiveRef.current) {
+      autoRotateActiveRef.current = false
+      setIsAutoPlaying(false)
+    }
+
     event.preventDefault()
 
     const direction = event.key === 'ArrowDown' ? 1 : -1
@@ -254,6 +351,8 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
     if (targetIndex === baseIndex) return
     scrollToActivePosition(targetIndex)
   }
+
+  // ── Active item ───────────────────────────────────────────────────────────
 
   const activeIndex = useMemo(() => {
     if (wheelItems.length === 0) return -1
@@ -272,6 +371,8 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
   }, [wheelItems])
 
   const activeEvent = activeIndex >= 0 ? events[activeIndex] : null
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   if (isError) return <ErrorState onRetry={onRetry} />
 
@@ -295,7 +396,7 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
         <div className="timeline-stage__grid">
           <div
             ref={wheelRef}
-            className="timeline-wheel"
+            className={`timeline-wheel${isDragging ? ' timeline-wheel--dragging' : ''}`}
             aria-label={t('TIMELINE.ARIA_LABEL')}
             tabIndex={0}
             onKeyDown={handleWheelKeyDown}
@@ -311,7 +412,7 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
               const isActive = index === activeIndex
               const normalizedAngle = normalizeAngle(angle)
               const isLeftSide = Math.abs(normalizedAngle) > Math.PI / 2
-              const radialRotation = isLeftSide ? angle + Math.PI : angle
+              const radialRotation = isActive ? 0 : isLeftSide ? angle + Math.PI : angle
               const style = {
                 transform: `translateY(-50%) translate(calc(cos(${angle}rad) * ${itemRadius}), calc(sin(${angle}rad) * ${itemRadius})) rotate(${radialRotation}rad) scale(${0.82 + visibilityProgress * 0.18})`,
                 opacity: isVisible ? Math.max(0.2, visibilityProgress) : 0,
@@ -338,7 +439,7 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
 
           {activeEvent ? (
             <aside className="timeline-detail">
-              <p className="timeline-detail__eyebrow">{t('TIMELINE.TITLE')}</p>
+              <p className="timeline-detail__eyebrow">{title}</p>
               <h2 className="timeline-detail__year">{activeEvent.year}</h2>
               <p className="timeline-detail__text">{activeEvent.text}</p>
 
@@ -367,6 +468,16 @@ export function Timeline({ events, isLoading, isError, onRetry }: Props) {
                     {t('TIMELINE.WIKIPEDIA')} ↗
                   </a>
                 ) : null}
+
+                <button
+                  type="button"
+                  className={`timeline-detail__playpause${isAutoPlaying ? ' timeline-detail__playpause--playing' : ''}`}
+                  onClick={() => setIsAutoPlaying(p => !p)}
+                  aria-label={isAutoPlaying ? 'Pausar avance' : 'Reanudar avance'}
+                  title={isAutoPlaying ? 'Pausar avance' : 'Reanudar avance'}
+                >
+                  {isAutoPlaying ? <PauseIcon /> : <PlayIcon />}
+                </button>
               </div>
             </aside>
           ) : null}

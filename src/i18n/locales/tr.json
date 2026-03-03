@@ -5,6 +5,8 @@
   },
   "TIMELINE": {
     "TITLE": "Tarihte bugün",
+    "TITLE_RELATIVE": "Tarihte {{label}}",
+    "TITLE_DATE": "Tarihte {{day}} {{month}}",
     "NO_EVENTS": "Bu tarih için olay bulunamadı.",
     "WIKIPEDIA": "Vikipedi",
     "ARIA_LABEL": "Tarihi olaylar zaman çizelgesi",
@@ -13,7 +15,9 @@
   "DATE": {
     "MONTH": "Ay",
     "DAY": "Gün",
+    "YESTERDAY": "Dün",
     "TODAY": "Bugün",
+    "TOMORROW": "Yarın",
     "APPLY": "Uygula",
     "MONTHS": {
       "JANUARY": "Ocak",

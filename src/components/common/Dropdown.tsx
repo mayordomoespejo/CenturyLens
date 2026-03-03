@@ -5,6 +5,7 @@ import './Dropdown.scss'
 export interface DropdownOption {
   value: string | number
   label: string
+  ariaLabel?: string
 }
 
 interface Props {
@@ -25,6 +26,7 @@ export function Dropdown({ value, options, onChange, ariaLabel, className = '' }
   const normalizedOptions = options.map((option) => ({
     ...option,
     label: option.label ?? String(option.value),
+    ariaLabel: option.ariaLabel ?? option.label ?? String(option.value),
   }))
   const selectedIndex = Math.max(0, normalizedOptions.findIndex((option) => option.value === value))
 
@@ -160,14 +162,9 @@ export function Dropdown({ value, options, onChange, ariaLabel, className = '' }
                   onClick={() => handleSelect(option.value)}
                   onMouseEnter={() => setActiveIndex(index)}
                   data-active={isActive ? 'true' : 'false'}
+                  aria-label={option.ariaLabel}
+                  title={option.ariaLabel}
                 >
-                  {isSelected ? (
-                    <svg className="dropdown__option-check" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ) : (
-                    <span className="dropdown__option-check" aria-hidden="true" />
-                  )}
                   {option.label}
                 </button>
               </li>

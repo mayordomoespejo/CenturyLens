@@ -5,6 +5,8 @@
   },
   "TIMELINE": {
     "TITLE": "Сьогодні в історії",
+    "TITLE_RELATIVE": "{{label}} в історії",
+    "TITLE_DATE": "{{day}} {{month}} в історії",
     "NO_EVENTS": "Для цієї дати подій не знайдено.",
     "WIKIPEDIA": "Вікіпедія",
     "ARIA_LABEL": "Хронологія історичних подій",
@@ -13,7 +15,9 @@
   "DATE": {
     "MONTH": "Місяць",
     "DAY": "День",
+    "YESTERDAY": "Вчора",
     "TODAY": "Сьогодні",
+    "TOMORROW": "Завтра",
     "APPLY": "Застосувати",
     "MONTHS": {
       "JANUARY": "Січень",

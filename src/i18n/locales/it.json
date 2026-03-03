@@ -5,6 +5,8 @@
   },
   "TIMELINE": {
     "TITLE": "Oggi nella storia",
+    "TITLE_RELATIVE": "{{label}} nella storia",
+    "TITLE_DATE": "{{day}} {{month}} nella storia",
     "NO_EVENTS": "Nessun evento trovato per questa data.",
     "WIKIPEDIA": "Wikipedia",
     "ARIA_LABEL": "Cronologia degli eventi storici",
@@ -13,7 +15,9 @@
   "DATE": {
     "MONTH": "Mese",
     "DAY": "Giorno",
+    "YESTERDAY": "Ieri",
     "TODAY": "Oggi",
+    "TOMORROW": "Domani",
     "APPLY": "Applica",
     "MONTHS": {
       "JANUARY": "Gennaio",

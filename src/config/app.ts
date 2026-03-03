@@ -2,7 +2,7 @@
  * Shared application metadata used by the UI and document head.
  */
 export const APP_CONFIG = {
-  name: 'CenturyLens',
+  name: 'Dayfold',
   titleSeparator: '·',
   themeStorageKey: 'cl_theme',
   languageStorageKey: 'cl_lang',

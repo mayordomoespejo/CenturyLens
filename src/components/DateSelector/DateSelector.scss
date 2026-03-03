@@ -10,14 +10,6 @@
     gap: var(--space-2);
   }
 
-  &__sep {
-    color: var(--color-text-muted);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    user-select: none;
-    pointer-events: none;
-  }
-
   &__day-dropdown {
     width: 52px;
     min-width: 52px;
@@ -82,6 +74,10 @@
     width: 52px;
     height: 36px;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     background: transparent;
     color: var(--color-text-muted);
     border: 1px solid var(--color-border);
@@ -104,6 +100,17 @@
 
     &:focus-visible {
       @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &--active {
+      background: var(--color-primary-muted);
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+      cursor: default;
     }
   }
 }

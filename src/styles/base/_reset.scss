@@ -70,3 +70,7 @@ button {
   flex-direction: column;
   min-height: 100dvh;
 }
+
+main {
+  padding-top: var(--header-height);
+}

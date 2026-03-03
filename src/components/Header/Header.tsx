@@ -5,8 +5,22 @@ import { useContentLang } from '@/context/useContentLang'
 import { CONTENT_LANGS } from '@/config/langs'
 import { DateSelector } from '@/components/DateSelector/DateSelector'
 import { Dropdown } from '@/components/common/Dropdown'
-import { CenturyLensIcon } from '@/components/icons/icons'
+import { DayfoldIcon } from '@/components/icons/icons'
 import './Header.scss'
+
+const LANGUAGE_FLAGS: Record<string, string> = {
+  ar: '🇸🇦',
+  de: '🇩🇪',
+  en: '🇬🇧',
+  es: '🇪🇸',
+  fr: '🇫🇷',
+  it: '🇮🇹',
+  pt: '🇵🇹',
+  sv: '🇸🇪',
+  tr: '🇹🇷',
+  uk: '🇺🇦',
+  zh: '🇨🇳',
+}
 
 const SunIcon = () => (
   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -36,19 +50,23 @@ export function Header() {
   const { contentLang, setContentLang } = useContentLang()
   const { date, setDate } = useTimelineDate()
 
-  const langOptions = CONTENT_LANGS.map(({ code, label }) => ({ value: code, label }))
+  const langOptions = CONTENT_LANGS.map(({ code, label }) => ({
+    value: code,
+    label: LANGUAGE_FLAGS[code] ?? label,
+    ariaLabel: label,
+  }))
 
   return (
     <header className="header" role="banner">
       <div className="header__inner">
         <div className="header__brand">
           <span className="header__brand-icon" aria-hidden="true">
-            <CenturyLensIcon />
+            <DayfoldIcon />
           </span>
-          <span className="header__brand-name">CenturyLens</span>
+          <span className="header__brand-name">Dayfold</span>
         </div>
 
-        <div className="header__actions">
+        <div className="header__date-group">
           <DateSelector
             key={`${date.month}-${date.day}`}
             month={date.month}
@@ -56,10 +74,13 @@ export function Header() {
             onChange={setDate}
             compact
           />
+        </div>
 
-          <div className="header__divider" aria-hidden="true" />
+        <div className="header__divider" aria-hidden="true" />
 
+        <div className="header__actions">
           <Dropdown
+            className="header__lang-dropdown"
             value={contentLang}
             options={langOptions}
             onChange={(v) => setContentLang(String(v))}

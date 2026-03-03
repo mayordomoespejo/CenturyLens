@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CalendarDate } from '@/types'
 import { clampDay, getDaysInMonth, getTodayDate } from '@/utils/date'
@@ -23,8 +23,10 @@ export function DateSelector({ month, day, onChange, compact = false }: Props) {
 
   const [localMonth, setLocalMonth] = useState(month)
   const [localDay, setLocalDay] = useState(day)
+  const today = getTodayDate()
 
   const isDirty = localMonth !== month || localDay !== day
+  const isTodaySelected = month === today.month && day === today.day
 
   const monthOptions: DropdownOption[] = MONTH_KEYS.map((key, i) => ({
     value: i + 1,
@@ -50,12 +52,24 @@ export function DateSelector({ month, day, onChange, compact = false }: Props) {
   }
 
   const handleToday = () => {
+    if (isTodaySelected) return
     onChange(getTodayDate())
   }
 
+  useEffect(() => {
+    setLocalMonth(month)
+    setLocalDay(day)
+  }, [day, month])
+
   return (
     <div className={`date-selector${compact ? ' date-selector--compact' : ''}`}>
-      <button type="button" className="date-selector__today" onClick={handleToday}>
+      <button
+        type="button"
+        className={`date-selector__today${isTodaySelected ? ' date-selector__today--active' : ''}`}
+        onClick={handleToday}
+        disabled={isTodaySelected}
+        aria-pressed={isTodaySelected}
+      >
         {t('DATE.TODAY')}
       </button>
 
@@ -66,8 +80,6 @@ export function DateSelector({ month, day, onChange, compact = false }: Props) {
           onChange={handleMonthChange}
           ariaLabel={t('DATE.MONTH')}
         />
-
-        <span className="date-selector__sep" aria-hidden="true">/</span>
 
         <Dropdown
           value={localDay}

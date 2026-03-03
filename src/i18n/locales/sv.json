@@ -5,6 +5,8 @@
   },
   "TIMELINE": {
     "TITLE": "Idag i historien",
+    "TITLE_RELATIVE": "{{label}} i historien",
+    "TITLE_DATE": "{{day}} {{month}} i historien",
     "NO_EVENTS": "Inga händelser hittades för detta datum.",
     "WIKIPEDIA": "Wikipedia",
     "ARIA_LABEL": "Tidslinje över historiska händelser",
@@ -13,7 +15,9 @@
   "DATE": {
     "MONTH": "Månad",
     "DAY": "Dag",
+    "YESTERDAY": "Igår",
     "TODAY": "Idag",
+    "TOMORROW": "Imorgon",
     "APPLY": "Tillämpa",
     "MONTHS": {
       "JANUARY": "Januari",

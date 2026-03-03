@@ -1,4 +1,4 @@
-export function CenturyLensIcon({ className, title, ...props }) {
+export function DayfoldIcon({ className, title, ...props }) {
   return (
     <svg
       viewBox="0 -0.5 1001 1001"

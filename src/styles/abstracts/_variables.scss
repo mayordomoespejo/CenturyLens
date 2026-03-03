@@ -51,6 +51,8 @@
   --line-height-relaxed: 1.75;
 
   --header-height: 72px;
+  --mobile-datebar-height: 52px;
+  --ornament-spin-duration: 120s;
 
   --z-base: 0;
   --z-above: 10;
@@ -59,6 +61,13 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
+}
+
+// En mobile el header tiene dos filas (brand 56px + date 52px)
+@media (max-width: 640px) {
+  :root {
+    --header-height: calc(56px + var(--mobile-datebar-height));
+  }
 }
 
 .theme-dark {

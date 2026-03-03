@@ -1,6 +1,6 @@
-# CenturyLens
+# Dayfold
 
-CenturyLens is a React 19 SPA that explores historical events for any day of the year using the Wikimedia On This Day API.
+Dayfold is a React 19 SPA that explores historical events for any day of the year using the Wikimedia On This Day API.
 
 ## Features
 
